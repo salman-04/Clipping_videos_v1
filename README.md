@@ -29,8 +29,8 @@ Turn long videos (podcasts, interviews, streams) into viral-ready short clips fo
    ```
 3. Clone this repo:
    ```powershell
-   git clone <your-repo-url>
-   cd Clipping_videos
+   git clone https://github.com/salman-04/Clipping_videos_v1
+   cd Clipping_videos_v1
    ```
 4. Install Python packages:
    ```powershell
