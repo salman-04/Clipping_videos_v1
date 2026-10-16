@@ -1,0 +1,55 @@
+# ── Python ──
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ── Environment / secrets ──
+.env
+.env.*
+!.env.example
+
+# ── Data (never commit) ──
+data/
+!data/.gitkeep
+
+# ── Test artifacts ──
+backend/style_tests/
+*.log
+
+# ── Fonts (redistributed separately) ──
+*.ttf
+*.otf
+
+# ── IDE / OS ──
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ── Video/audio files ──
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.avi
+*.m4v
+*.wav
+*.mp3
+*.m4a
+
+# ── Image exports ──
+screenshot-*.png
+PROGRESS.md
+api key temp.txt
+text
+

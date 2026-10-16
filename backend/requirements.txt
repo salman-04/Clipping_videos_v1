@@ -1,0 +1,10 @@
+flask
+flask-cors
+faster-whisper
+yt-dlp
+requests
+librosa
+soundfile
+numpy
+google-genai
+pysubs2

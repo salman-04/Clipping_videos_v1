@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Clip Studio</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="logo-mark">▶</div>
+        <div class="logo-text">AI Clip Studio</div>
+      </div>
+      <nav class="nav">
+        <button class="nav-item active" data-tab="generate">
+          <span class="nav-icon">⚡</span> Generate
+        </button>
+        <button class="nav-item" data-tab="pinned">
+          <span class="nav-icon">📌</span> Pinned
+        </button>
+        <button class="nav-item" data-tab="settings">
+          <span class="nav-icon">⚙️</span> Settings
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="version">v2.0</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <!-- GENERATE TAB -->
+      <section class="tab-panel active" id="tab-generate">
+        <header class="page-header">
+          <div>
+            <h1>Generate</h1>
+            <p class="subtitle">Turn long videos into CapCut-ready clips</p>
+          </div>
+          <div class="stats-mini" id="statsMini">
+            <div class="stat-mini">
+              <span class="stat-mini-value" id="statJobs">0</span>
+              <span class="stat-mini-label">Jobs</span>
+            </div>
+            <div class="stat-mini">
+              <span class="stat-mini-value" id="statClips">0</span>
+              <span class="stat-mini-label">Clips</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="grid">
+          <div class="card">
+            <h2 class="card-title">1. Video Source</h2>
+
+            <div class="input-group">
+              <div class="segmented">
+                <button class="seg-btn active" data-src="url">YouTube URL</button>
+                <button class="seg-btn" data-src="file">Local File</button>
+              </div>
+            </div>
+
+            <div class="input-group" id="urlGroup">
+              <input id="sourceUrl" type="text" placeholder="https://www.youtube.com/watch?v=..." />
+            </div>
+
+            <div class="input-group hidden" id="fileGroup">
+              <div id="dropZone" class="drop-zone">
+                <input type="file" id="fileInput" accept="video/*" style="display:none;" />
+                <div class="drop-zone-content">
+                  <div class="drop-icon">📁</div>
+                  <div class="drop-text"><strong>Click to browse</strong> or drag & drop</div>
+                  <div class="drop-hint">MP4, MOV, MKV, WebM, AVI — up to 2 GB</div>
+                </div>
+              </div>
+              <div id="fileInfo" class="file-info hidden">
+                <span class="file-info-icon">✓</span>
+                <span id="fileName">file.mp4</span>
+                <span id="fileSize" class="muted"></span>
+                <button type="button" id="clearFile" class="clear-file">✕</button>
+              </div>
+              <div id="uploadProgress" class="upload-progress hidden">
+                <div class="upload-bar"><div class="upload-bar-fill" id="uploadBarFill"></div></div>
+                <div class="upload-label" id="uploadLabel">Uploading...</div>
+              </div>
+            </div>
+
+            <h2 class="card-title" style="margin-top:24px;">2. Mode</h2>
+            <div class="input-group">
+              <div class="mode-grid">
+                <button class="mode-btn active" data-mode="find-clips">
+                  <div class="mode-icon">⚡</div>
+                  <div class="mode-name">Find Clips</div>
+                  <div class="mode-desc">Viral clip detection</div>
+                </button>
+                <button class="mode-btn" data-mode="captions-only">
+                  <div class="mode-icon">💬</div>
+                  <div class="mode-name">Captions Only</div>
+                  <div class="mode-desc">SRT for your ranges</div>
+                </button>
+                <button class="mode-btn" data-mode="both">
+                  <div class="mode-icon">🧠</div>
+                  <div class="mode-name">Both</div>
+                  <div class="mode-desc">Clips + full metadata</div>
+                </button>
+              </div>
+            </div>
+
+            <div class="input-group hidden" id="rangesGroup">
+              <label for="ranges">Time ranges (one per line or comma-separated)</label>
+              <textarea id="ranges" rows="5" placeholder="00:02:00-00:03:00&#10;00:07:21-00:08:59&#10;00:12:30-00:13:45"></textarea>
+              <p class="hint">Format: MM:SS-MM:SS or HH:MM:SS-HH:MM:SS</p>
+            </div>
+
+            <div class="input-group hidden" id="detectionGroup">
+              <label for="detection">Detection quality</label>
+              <select id="detection">
+                <option value="fast">Fast — audio + heuristics (no API)</option>
+                <option value="smart">Smart — adds LLM analysis (needs API key)</option>
+              </select>
+            </div>
+
+            <div class="row hidden" id="clipCountGroup">
+              <div class="input-group">
+                <label for="numClips">Number of clips</label>
+                <input id="numClips" type="number" value="10" min="3" max="30" />
+              </div>
+              <div class="input-group">
+                <label for="durationPreset">Duration</label>
+                <select id="durationPreset">
+                  <option value="10-30">Short (10-30s)</option>
+                  <option value="30-60" selected>Medium (30-60s)</option>
+                  <option value="60-90">Long (60-90s)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="input-group hidden" id="burnGroup">
+              <label class="checkbox">
+                <input type="checkbox" id="burnCaptions" />
+                <span>Burn captions into MP4 (slower, less reliable)</span>
+              </label>
+              <p class="hint">Off by default — use SRT in CapCut instead.</p>
+            </div>
+
+            <div class="input-group" id="styleGroup">
+              <label for="style">Render style</label>
+              <select id="style">
+                <option value="blur_bg">Blur background (default)</option>
+                <option value="blur_zoom">Blur + zoom (bigger face)</option>
+                <option value="safe_zone">Safe zone (IG/TikTok preview)</option>
+                <option value="square_center">Square center (podcast)</option>
+                <option value="split_top_bottom">Split top/bottom (gaming)</option>
+                <option value="zoom_crop">Zoom crop (fill frame)</option>
+              </select>
+            </div>
+
+            <button id="startBtn" class="btn btn-primary btn-lg">⚡ Start</button>
+          </div>
+
+          <div class="card">
+            <h2 class="card-title">Progress</h2>
+            <div class="empty-state" id="emptyState">
+              <div class="empty-icon">🎬</div>
+              <p>Choose a source and click Start</p>
+            </div>
+
+            <div class="progress-body hidden" id="progressBody">
+              <div class="status-pill" id="statusPill">
+                <span class="status-dot"></span>
+                <span id="statusText">Starting...</span>
+              </div>
+              <div class="upload-bar" style="margin-bottom:14px;">
+                <div class="upload-bar-fill" id="jobBarFill"></div>
+              </div>
+              <div class="log-view" id="logView"></div>
+            </div>
+
+            <div class="results hidden" id="results">
+              <div class="results-header">
+                <h3>Clips Ready</h3>
+                <span class="badge" id="clipCountBadge">0</span>
+              </div>
+              <div class="clip-grid" id="clipGrid"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PINNED TAB -->
+      <section class="tab-panel" id="tab-pinned">
+        <header class="page-header">
+          <div>
+            <h1>Pinned Clips</h1>
+            <p class="subtitle">Survive the "Clean Old Data" button</p>
+          </div>
+        </header>
+        <div class="card">
+          <div id="pinnedList" class="clip-grid"></div>
+        </div>
+      </section>
+
+      <!-- SETTINGS TAB -->
+        <section class="tab-panel" id="tab-settings">
+          <header class="page-header">
+            <div>
+              <h1>Settings</h1>
+              <p class="subtitle">Your API keys and local model</p>
+            </div>
+          </header>
+
+          <div class="card" style="margin-bottom:16px;">
+            <h2 class="card-title">Cloud AI Provider Keys</h2>
+            <p class="muted">Add your own keys. Stored locally in your Windows AppData folder — never shared.</p>
+
+            <div class="input-group" style="margin-top:14px;">
+              <label>Groq</label>
+              <input type="password" id="keyGroq" placeholder="gsk_..." />
+              <button class="btn" onclick="saveKey('groq')" style="margin-top:8px;">Save</button>
+              <span id="statusGroq" class="muted"></span>
+            </div>
+
+            <div class="input-group">
+              <label>Cerebras</label>
+              <input type="password" id="keyCerebras" placeholder="csk_..." />
+              <button class="btn" onclick="saveKey('cerebras')" style="margin-top:8px;">Save</button>
+              <span id="statusCerebras" class="muted"></span>
+            </div>
+
+            <div class="input-group">
+              <label>Google Gemini</label>
+              <input type="password" id="keyGemini" placeholder="AIza..." />
+              <button class="btn" onclick="saveKey('gemini')" style="margin-top:8px;">Save</button>
+              <span id="statusGemini" class="muted"></span>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:16px;">
+            <h2 class="card-title">Local AI (Ollama)</h2>
+            <p class="muted">
+              Use your own local model. Install Ollama from
+              <a href="https://ollama.com" target="_blank">ollama.com</a>, then run
+              <code>ollama pull qwen2.5:7b</code> in a terminal.
+            </p>
+
+            <div class="input-group" style="margin-top:14px;">
+              <label>Installed models on your PC</label>
+              <select id="ollamaModels">
+                <option value="">— click Refresh —</option>
+              </select>
+              <button class="btn" onclick="refreshOllama()" style="margin-top:8px;">🔄 Refresh</button>
+            </div>
+
+            <div class="input-group">
+              <label>Or type a model name manually</label>
+              <input type="text" id="ollamaModelManual" placeholder="qwen2.5:7b" />
+              <button class="btn" onclick="saveOllamaManual()" style="margin-top:8px;">Save Model</button>
+              <span id="statusOllama" class="muted"></span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 class="card-title">Danger Zone</h2>
+            <p class="muted">
+              Deletes generated clips, SRTs, temp files, and uploads.
+              <strong>Pinned clips + learning DB are preserved.</strong>
+            </p>
+            <button class="btn btn-danger" id="cleanBtn" style="margin-top:14px;">
+              🗑️ Clean Old Data
+            </button>
+            <div id="cleanResult" class="muted" style="margin-top:10px;"></div>
+          </div>
+        </section>
+    </main>
+  </div>
+
+  <script src="/script.js"></script>
+</body>
+</html>
